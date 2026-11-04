@@ -57,6 +57,14 @@ body{background:#f8fbfa}
 .booking-notice[hidden]{display:none}
 .booking-footer-note{font-size:.76rem;color:#9aaba4;margin-top:17px;text-align:center}
 @media(max-width:650px){.booking-wrap{padding:22px 16px 70px}.booking-back{margin-bottom:19px}.booking-grid{grid-template-columns:1fr;gap:17px}.booking-card{border-radius:17px}.jalali-calendar{width:100%;max-width:340px}.booking-heading h1{font-size:1.65rem}}
+
+.booking-datetime{grid-column:1/-1}
+.jalali-calendar{top:calc(100% + 8px);width:min(370px,calc(100vw - 52px));}
+.calendar-time-wrap{border-top:1px solid #edf1ef;margin-top:12px;padding-top:12px}
+.calendar-time-wrap[hidden]{display:none}
+.calendar-time-label{display:block;color:#526b61;font-size:.82rem;font-weight:650;margin-bottom:7px}
+.calendar-time-wrap select{width:100%;min-height:42px;border:1px solid #e1eae6;border-radius:10px;padding:7px 11px;background:#fbfdfc;font:inherit;font-size:.88rem}
+@media(max-width:650px){.jalali-calendar{width:100%;max-width:none}}
 </style>
 </head>
 <body>
@@ -86,14 +94,14 @@ body{background:#f8fbfa}
 <label for="bookingPhone">شماره موبایل</label>
 <input id="bookingPhone" name="phone" autocomplete="tel" inputmode="tel" maxlength="11" required placeholder="۰۹۱۲۳۴۵۶۷۸۹">
 </div>
-<div class="booking-field booking-date-field">
-<label id="appointmentDateLabel" for="dateTrigger">تاریخ مراجعه</label>
+<div class="booking-field booking-date-field booking-datetime">
+<label id="appointmentDateLabel" for="dateTrigger">تاریخ و ساعت مراجعه</label>
 <input type="hidden" id="appointmentDate" name="date" required>
 <button class="date-trigger" type="button" id="dateTrigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="jalaliCalendar" aria-labelledby="appointmentDateLabel selectedPersianDate">
-<span id="selectedPersianDate">انتخاب تاریخ</span>
+<span id="selectedPersianDate">انتخاب تاریخ و ساعت</span>
 <span style="display:flex;align-items:center;gap:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg><span class="date-chevron" aria-hidden="true">⌄</span></span>
 </button>
-<div class="jalali-calendar" id="jalaliCalendar" role="dialog" aria-label="انتخاب تاریخ مراجعه" hidden>
+<div class="jalali-calendar" id="jalaliCalendar" role="dialog" aria-label="انتخاب تاریخ و ساعت مراجعه" hidden>
 <div class="jalali-month-bar">
 <button type="button" id="calendarPrev" aria-label="ماه قبل">قبلی</button>
 <strong id="calendarMonth"></strong>
@@ -101,11 +109,11 @@ body{background:#f8fbfa}
 </div>
 <div class="jalali-weekdays" aria-hidden="true"><span>ش</span><span>ی</span><span>د</span><span>س</span><span>چ</span><span>پ</span><span>ج</span></div>
 <div class="jalali-days" id="calendarDays"></div>
+<div class="calendar-time-wrap" id="calendarTimeWrap" hidden>
+<span class="calendar-time-label">ساعت مراجعه</span>
+<select id="appointmentTime" name="time" aria-label="ساعت مراجعه" required disabled><option value="">ابتدا تاریخ را انتخاب کنید</option></select>
 </div>
 </div>
-<div class="booking-field">
-<label for="appointmentTime">ساعت مراجعه</label>
-<select id="appointmentTime" name="time" required disabled><option value="">ابتدا تاریخ را انتخاب کنید</option></select>
 </div>
 </div>
 <label class="booking-consent"><input id="bookingConsent" type="checkbox" required><span>موافقم اطلاعات تماسم فقط برای پیگیری درخواست نوبت استفاده شود. ثبت درخواست به معنی تأیید قطعی نیست.</span></label>
@@ -118,5 +126,5 @@ body{background:#f8fbfa}
 <p class="booking-footer-note">برای هماهنگی تلفنی: <a href="tel:02144268147">۰۲۱۴۴۲۶۸۱۴۷</a> · لطفاً اطلاعات پزشکی را در این فرم وارد نکنید.</p>
 </main>
 <footer class="site-footer"><div class="container" style="padding:28px 20px"><p>پنجره روشنایی · پروژه دانشگاهی · برای تماس: <a href="tel:02144268147">۰۲۱۴۴۲۶۸۱۴۷</a></p></div></footer>
-<script src="js/script.js"></script><script src="js/booking-shamsi.js?v=4"></script>
+<script src="js/script.js"></script><script src="js/booking-shamsi.js?v=5"></script>
 </body></html>
