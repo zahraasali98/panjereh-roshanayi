@@ -6,7 +6,33 @@ const demo=location.hostname.endsWith('github.io')||location.protocol==='file:';
 function message(t,type){statusEl.textContent=t;statusEl.className='booking-status '+(type||'');statusEl.hidden=false;}
 function iranDate(offset){const p=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(Date.now()+offset*86400000)).map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day;}
 function friday(d){return new Date(d+'T00:00:00Z').getUTCDay()===5;}
-function times(a){timeEl.replaceChildren(new Option('انتخاب ساعت',''));a.forEach(t=>timeEl.add(new Option(t,t)));timeEl.disabled=!a.length;}
+function times(a){
+ timeEl.replaceChildren(new Option('انتخاب ساعت',''));
+ const grid=document.getElementById('calendarTimeGrid');
+ grid.replaceChildren();
+ a.forEach(t=>{
+  timeEl.add(new Option(t,t));
+  const button=document.createElement('button');
+  button.type='button';
+  button.textContent=t;
+  button.setAttribute('aria-pressed','false');
+  button.addEventListener('click',()=>{
+   timeEl.value=t;
+   grid.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+   const day=new Date(dateEl.value+'T12:00:00Z');
+   selectedEl.textContent=persianFormatter.format(day)+' · '+t;
+   setCalendarOpen(false);
+   statusEl.hidden=true;
+  });
+  grid.appendChild(button);
+ });
+ if(!a.length){
+  const note=document.createElement('span');
+  note.className='no-times';note.textContent='ساعت آزادی برای این روز وجود ندارد.';
+  grid.appendChild(note);
+ }
+ timeEl.disabled=!a.length;
+}
 // تاریخ‌های شمسی با Intl نمایش داده می‌شوند؛ تاریخ استاندارد فقط برای API است.
 const persianFormatter=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{
  timeZone:'Asia/Tehran',weekday:'long',year:'numeric',month:'long',day:'numeric'
