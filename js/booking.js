@@ -7,7 +7,17 @@ function message(t,type){statusEl.textContent=t;statusEl.className='booking-stat
 function iranDate(offset){const p=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(Date.now()+offset*86400000)).map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day;}
 function friday(d){return new Date(d+'T00:00:00Z').getUTCDay()===5;}
 function times(a){timeEl.replaceChildren(new Option('انتخاب ساعت',''));a.forEach(t=>timeEl.add(new Option(t,t)));timeEl.disabled=!a.length||demo;}
-dateEl.min=iranDate(0);dateEl.max=iranDate(60);
+// تاریخ‌های شمسی برای کاربر نمایش داده می‌شوند؛ مقدار داخلی ISO برای API محفوظ است.
+const persianFormatter=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{
+ timeZone:'Asia/Tehran',weekday:'long',year:'numeric',month:'long',day:'numeric'
+});
+const firstDate=new Date(iranDate(0)+'T12:00:00Z');
+for(let offset=0;offset<=60;offset++){
+ const day=new Date(firstDate.getTime()+offset*86400000);
+ const iso=day.toISOString().slice(0,10);
+ if(friday(iso))continue;
+ dateEl.add(new Option(persianFormatter.format(day),iso));
+}
 if(demo){document.getElementById('demoNotice').hidden=false;submitEl.disabled=true;message('این نسخه نمایشی است؛ نوبت واقعی در GitHub Pages ثبت نمی‌شود.','notice');}
 dateEl.addEventListener('change',async()=>{
 times([]);const date=dateEl.value;if(!date)return;
