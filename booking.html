@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="درخواست نوبت مشاوره کلینیک پنجره روشنایی">
+<title>نوبت‌دهی آنلاین | پنجره روشنایی</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+.booking-wrap{max-width:900px;margin:50px auto 85px;padding:0 20px}
+.booking-heading{text-align:center;margin-bottom:30px}
+.booking-heading h1{font-size:clamp(1.6rem,4vw,2.5rem);margin-bottom:10px}
+.booking-heading p{color:var(--ink-500);margin:0}
+.booking-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:clamp(22px,5vw,44px)}
+.booking-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.booking-field{display:flex;flex-direction:column;gap:7px}
+.booking-field label{font-weight:700}
+.booking-field input,.booking-field select{width:100%;min-height:48px;border:1px solid #c9d9d2;border-radius:12px;background:white;padding:10px 13px;font:inherit;color:var(--ink-900)}
+.booking-field input:focus,.booking-field select:focus{outline:2px solid var(--green-300);outline-offset:1px}
+.booking-help{color:var(--ink-500);font-size:.88rem}
+.booking-consent{display:flex;align-items:flex-start;gap:10px;margin:22px 0;font-size:.93rem}
+.booking-consent input{margin-top:8px}
+.booking-status{margin-top:18px;padding:12px 16px;border-radius:12px;background:#edf7f1;color:#1c5a45}
+.booking-status.error{background:#fff0ef;color:#9b2d23}
+.booking-status.notice{background:#eef5f8;color:#28536a}
+.booking-notice{background:#fff8e7;border:1px solid #e8d6a1;border-radius:12px;padding:15px;margin:0 0 24px}
+.booking-back{display:inline-block;margin:25px 0;color:var(--green-700);font-weight:700}
+.booking-card button{font:inherit}
+@media(max-width:650px){.booking-grid{grid-template-columns:1fr}.booking-wrap{margin-top:25px}}
+</style>
+</head>
+<body>
+<header class="site-header" id="siteHeader"><div class="container header-inner">
+<a class="logo" href="index.html"><span class="logo-mark" aria-hidden="true">🟩</span><span class="logo-text"><strong>پنجره روشنایی</strong><small>کلینیک ترک اعتیاد</small></span></a>
+<nav class="main-nav" id="mainNav" aria-label="منوی اصلی"><ul>
+<li><a href="index.html">صفحه اصلی</a></li><li><a href="index.html#services">خدمات درمانی</a></li><li><a href="index.html#contact">تماس با ما</a></li><li><a class="active" href="booking.html">نوبت‌دهی آنلاین</a></li>
+</ul></nav>
+<a href="tel:02144268147" class="header-cta">تماس فوری</a>
+<button class="nav-toggle" id="navToggle" aria-label="باز کردن منو" aria-expanded="false" aria-controls="mainNav"><span></span><span></span><span></span></button>
+</div></header>
+<main class="booking-wrap">
+<a href="index.html" class="booking-back">← بازگشت به صفحه اصلی</a>
+<div class="booking-heading"><h1>درخواست نوبت مشاوره</h1><p>شنبه تا پنجشنبه، ساعت ۸ صبح تا ۴ عصر · جمعه تعطیل</p></div>
+<section class="booking-card" aria-label="فرم درخواست نوبت">
+<div class="booking-notice" id="demoNotice" hidden><strong>نسخه نمایشی دانشگاهی:</strong> در GitHub Pages امکان ثبت واقعی نوبت وجود ندارد. این قابلیت پس از اتصال بک‌اند و پایگاه داده به محیط اجرایی مناسب فعال می‌شود.</div>
+<p class="booking-help">لطفاً فقط نام و شماره تماس را وارد کنید؛ اطلاعات پزشکی یا جزئیات درمان را در این فرم ننویسید. ثبت درخواست به معنی تأیید قطعی نوبت نیست.</p>
+<form id="bookingForm">
+<div class="booking-grid">
+<div class="booking-field"><label for="bookingName">نام و نام خانوادگی</label><input id="bookingName" name="fullName" autocomplete="name" maxlength="100" minlength="3" required placeholder="نام و نام خانوادگی"></div>
+<div class="booking-field"><label for="bookingPhone">شماره موبایل</label><input id="bookingPhone" name="phone" autocomplete="tel" inputmode="tel" maxlength="11" required placeholder="۰۹۱۲۳۴۵۶۷۸۹"></div>
+<div class="booking-field"><label for="appointmentDate">تاریخ مراجعه (میلادی)</label><input id="appointmentDate" name="date" type="date" required><small class="booking-help">امکان درخواست برای ۶۰ روز آینده وجود دارد.</small></div>
+<div class="booking-field"><label for="appointmentTime">ساعت شروع نوبت</label><select id="appointmentTime" name="time" required disabled><option value="">ابتدا تاریخ را انتخاب کنید</option></select></div>
+</div>
+<label class="booking-consent"><input id="bookingConsent" type="checkbox" required><span>می‌پذیرم که نام و شماره تماس من صرفاً برای پیگیری درخواست نوبت استفاده شود. می‌دانم تأیید نهایی با کلینیک است.</span></label>
+<input id="bookingWebsite" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+<button id="bookingSubmit" type="submit" class="btn btn-primary">ثبت درخواست نوبت</button>
+<div id="bookingStatus" class="booking-status" role="status" aria-live="polite" hidden></div>
+</form>
+</section>
+</main>
+<footer class="site-footer"><div class="container" style="padding:28px 20px"><p>پنجره روشنایی · پروژه دانشگاهی · برای تماس: <a href="tel:02144268147">۰۲۱۴۴۲۶۸۱۴۷</a></p></div></footer>
+<script src="js/script.js"></script><script src="js/booking.js"></script>
+</body></html>
