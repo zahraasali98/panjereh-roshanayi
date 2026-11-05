@@ -15,6 +15,7 @@ export default {
      headers.set('X-Frame-Options','DENY');
      return new Response(response.body,{status:response.status,headers});
    }
+   if (url.pathname === '/api/appointments/track') return trackAppointment(request,env);
    if (url.pathname === '/api/appointments/slots') return appointmentSlots(request,env);
    if (url.pathname === '/api/appointments') return createAppointment(request,env);
    if (url.pathname !== '/api/contact') return env.ASSETS.fetch(request);
@@ -213,5 +214,54 @@ async function adminApi(request,env,url){
  }catch(e){
   console.error('admin api failure',String(e).slice(0,100));
   return adminJson({ok:false,message:'خطای سرور؛ لطفاً دوباره تلاش کنید.'},500);
+ }
+}
+
+
+// Public status lookup: the 8-character booking reference is never sufficient on its own.
+// Require the exact booking phone as a second factor and rate-limit requests per IP.
+async function trackAppointment(request,env){
+ if(request.method!=='POST')return json({ok:false,message:'روش درخواست معتبر نیست.'},405);
+ if(!env.DB)return json({ok:false,message:'سامانه پیگیری موقتاً در دسترس نیست.'},503);
+ const url=new URL(request.url);
+ if(request.headers.get('origin')!==url.origin)return json({ok:false,message:'مبدأ درخواست مجاز نیست.'},403);
+ if(request.headers.get('content-type')?.split(';')[0].trim()!=='application/json')
+  return json({ok:false,message:'فرمت درخواست نامعتبر است.'},415);
+ if(Number(request.headers.get('content-length')||0)>1024)
+  return json({ok:false,message:'درخواست بیش از حد طولانی است.'},413);
+ let body;
+ try{body=await request.json();}catch{return json({ok:false,message:'اطلاعات درخواست معتبر نیست.'},400);}
+ if(!body||typeof body!=='object'||Array.isArray(body))return json({ok:false,message:'اطلاعات درخواست معتبر نیست.'},400);
+ const reference=normalizeDigits(body.reference||'').trim().toUpperCase();
+ const phone=normalizeDigits(body.phone||'').replace(/[\s-]/g,'').trim();
+ if(!/^[A-F0-9]{8}$/.test(reference)||!/^09[0-9]{9}$/.test(phone))
+  return json({ok:false,message:'کد پیگیری ۸ کاراکتری و شماره موبایل ۱۱ رقمی معتبر وارد کنید.'},400);
+ try{
+  const now=Math.floor(Date.now()/1000);
+  const ipHash=await sha256(request.headers.get('CF-Connecting-IP')||'unknown');
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS tracking_attempts (ip_hash TEXT PRIMARY KEY, window_start INTEGER NOT NULL, attempts INTEGER NOT NULL)').run();
+  // Atomic upsert limits the lookup to 10 requests in a rolling-ish 15-minute window.
+  await env.DB.prepare(
+   'INSERT INTO tracking_attempts(ip_hash,window_start,attempts) VALUES(?,?,1) '+
+   'ON CONFLICT(ip_hash) DO UPDATE SET '+
+   'attempts=CASE WHEN window_start<=? THEN 1 ELSE attempts+1 END, '+
+   'window_start=CASE WHEN window_start<=? THEN excluded.window_start ELSE window_start END'
+  ).bind(ipHash,now,now-900,now-900).run();
+  const throttle=await env.DB.prepare('SELECT attempts,window_start FROM tracking_attempts WHERE ip_hash=?').bind(ipHash).first();
+  if(Number(throttle?.attempts)>10)
+   return json({ok:false,message:'تعداد درخواست‌ها زیاد است. لطفاً کمی بعد دوباره تلاش کنید.'},429);
+  const appointment=await env.DB.prepare(
+   'SELECT appointment_date,appointment_time,status FROM appointments '+
+   'WHERE UPPER(SUBSTR(id,1,8))=? AND phone=? LIMIT 1'
+  ).bind(reference,phone).first();
+  if(!appointment)return json({ok:false,message:'نوبتی با این کد و شماره موبایل پیدا نشد. اطلاعات را بررسی کنید.'},404);
+  return json({ok:true,appointment:{
+   date:appointment.appointment_date,
+   time:appointment.appointment_time,
+   status:appointment.status
+  }});
+ }catch(e){
+  console.error('tracking lookup failed');
+  return json({ok:false,message:'پیگیری نوبت در حال حاضر ممکن نیست؛ لطفاً دوباره تلاش کنید.'},500);
  }
 }
