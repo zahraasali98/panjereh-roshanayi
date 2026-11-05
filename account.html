@@ -78,7 +78,7 @@ tr:last-child td{border-bottom:0}
 <div id="loginPanel" role="tabpanel">
 <form id="loginForm">
 <div class="field"><label for="loginPhone">شماره موبایل</label><input id="loginPhone" type="tel" autocomplete="tel" inputmode="numeric" maxlength="11" required placeholder="09123456789"></div>
-<div class="field"><label for="loginPassword">رمز عبور</label><input id="loginPassword" type="password" autocomplete="current-password" minlength="12" maxlength="128" required></div>
+<div class="field"><label for="loginPassword">رمز عبور</label><input id="loginPassword" type="password" autocomplete="current-password" minlength="5" maxlength="128" required></div>
 <button id="loginSubmit" type="submit" class="primary" style="width:100%">ورود به حساب</button>
 </form>
 </div>
@@ -86,8 +86,8 @@ tr:last-child td{border-bottom:0}
 <form id="registerForm">
 <div class="field"><label for="registerName">نام و نام خانوادگی</label><input id="registerName" autocomplete="name" minlength="3" maxlength="100" required placeholder="نام شما"></div>
 <div class="field"><label for="registerPhone">شماره موبایل</label><input id="registerPhone" type="tel" autocomplete="tel" inputmode="numeric" maxlength="11" required placeholder="09123456789"></div>
-<div class="field"><label for="registerPassword">رمز عبور جدید</label><input id="registerPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" required><span class="hint">حداقل ۱۲ کاراکتر؛ از رمز منحصربه‌فرد استفاده کنید.</span></div>
-<div class="field"><label for="confirmPassword">تکرار رمز عبور</label><input id="confirmPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></div>
+<div class="field"><label for="registerPassword">رمز عبور جدید</label><input id="registerPassword" type="password" autocomplete="new-password" minlength="5" maxlength="128" required><span class="hint">حداقل ۵ کاراکتر؛ از رمز منحصربه‌فرد استفاده کنید.</span></div>
+<div class="field"><label for="confirmPassword">تکرار رمز عبور</label><input id="confirmPassword" type="password" autocomplete="new-password" minlength="5" maxlength="128" required></div>
 <button id="registerSubmit" type="submit" class="primary" style="width:100%">ساخت حساب کاربری</button>
 </form>
 </div>
