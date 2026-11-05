@@ -410,6 +410,18 @@ async function accountApi(request,env,url){
    await env.DB.prepare('DELETE FROM user_sessions WHERE token_hash=?').bind(user.token_hash).run();
    return userJson({ok:true},200,{'Set-Cookie':userCookie('',0)});
   }
+  if(path==='/api/account/appointments/cancel'){
+   if(request.method!=='POST')return userJson({ok:false},405);
+   let data;
+   try{data=await request.json();}catch{return userJson({ok:false,message:'درخواست نامعتبر است.'},400);}
+   const ref=String(data?.reference||'').toUpperCase();
+   if(!/^[A-F0-9]{8}$/.test(ref))return userJson({ok:false,message:'کد نامعتبر است.'},400);
+   const p=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+   const now=p.year+'-'+p.month+'-'+p.day+' '+p.hour+':'+p.minute;
+   const result=await env.DB.prepare("UPDATE appointments SET status='cancelled' WHERE user_id=? AND UPPER(SUBSTR(id,1,8))=? AND status IN ('pending','confirmed') AND (appointment_date || ' ' || appointment_time)>?").bind(user.id,ref,now).run();
+   if(result.meta?.changes!==1)return userJson({ok:false,message:'این نوبت قابل لغو نیست.'},409);
+   return userJson({ok:true});
+  }
   if(path==='/api/account/appointments'){
    if(request.method!=='GET')return userJson({ok:false},405);
    const data=await env.DB.prepare(
