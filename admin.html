@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<title>مدیریت نوبت‌ها | پنجره روشنایی</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{font-family:Vazirmatn,Tahoma,sans-serif;color:#203d38;background:#f5f9f7}
+*{box-sizing:border-box}body{margin:0;min-height:100vh}button,input,select{font:inherit}
+header{background:#fff;border-bottom:1px solid #e4ece8;padding:16px max(18px,calc((100vw - 1120px)/2));display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;color:#215f54;text-decoration:none}.brand small{display:block;font-size:.72rem;font-weight:500;color:#738b82}
+.brand svg{width:36px;height:36px;flex:none}
+main{max-width:1120px;margin:40px auto;padding:0 18px}
+h1{font-size:clamp(1.35rem,3vw,2rem);margin:0 0 6px}p{color:#70857d;margin:0 0 20px}
+.panel{background:#fff;border:1px solid #e1ebe6;border-radius:20px;padding:24px;box-shadow:0 14px 35px #224f4010}
+.login{max-width:440px;margin:65px auto}.login h1{margin-bottom:12px}
+label{display:block;font-size:.85rem;font-weight:700;margin-bottom:7px}
+input,select{width:100%;border:1px solid #d6e5dd;border-radius:11px;background:#fbfdfc;padding:12px;color:#203d38;min-height:46px}
+input:focus,select:focus,button:focus-visible{outline:2px solid #32907c;outline-offset:2px}
+button{border:0;border-radius:11px;cursor:pointer;padding:10px 16px;font-weight:700;min-height:43px}
+button:disabled{opacity:.55;cursor:not-allowed}
+.primary{background:#237b6b;color:white}.primary:hover:not(:disabled){background:#176353}
+.outline{border:1px solid #bad7cc;background:#fff;color:#236959}.outline:hover:not(:disabled){background:#eef8f3}
+.danger{border:1px solid #f0d2d0;background:#fff7f6;color:#aa433c}
+.danger:hover:not(:disabled){background:#ffebe9}
+.muted{color:#6e857b;font-size:.85rem}.status{min-height:1.4em;margin:14px 0 0;font-size:.88rem;color:#21634e}
+.status.error{color:#a52d2d}
+.actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:20px}
+.filters{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;margin:18px 0}
+.filters label{margin-bottom:5px}
+.summary{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.stat{background:#f0f8f4;padding:12px 18px;border-radius:12px;min-width:125px}
+.stat strong{display:block;font-size:1.3rem;color:#246d5e}
+.stat span{font-size:.76rem;color:#68877b}
+.table-wrap{overflow:auto;border:1px solid #e4ede8;border-radius:13px}
+table{border-collapse:collapse;width:100%;min-width:800px;text-align:right}
+th,td{padding:12px;border-bottom:1px solid #eaf0ec;vertical-align:middle;font-size:.85rem}
+th{background:#f5faf7;color:#527568;font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td .actions{flex-wrap:nowrap}
+.pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:.76rem;white-space:nowrap}
+.pending{background:#fff6e4;color:#875b13}.confirmed{background:#e7f7ee;color:#216b48}.cancelled{background:#fff0ef;color:#a3443e}
+.hidden{display:none!important}
+.empty{padding:30px;text-align:center;color:#74877d}
+.note{margin-top:15px;color:#7a8c83;font-size:.78rem;line-height:1.9}
+@media(max-width:680px){main{margin:22px auto}.panel{padding:16px}.top{align-items:start;flex-direction:column}.filters{grid-template-columns:1fr 1fr}.filters button{grid-column:1/-1}.login{margin:40px auto}}
+</style>
+</head>
+<body>
+<header>
+<a class="brand" href="index.html" aria-label="بازگشت به سایت پنجره روشنایی">
+<svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><rect x="4" y="4" width="14" height="14" rx="3" fill="#276f63"/><rect x="22" y="4" width="14" height="14" rx="3" fill="#a2c9bd"/><rect x="4" y="22" width="14" height="14" rx="3" fill="#a2c9bd"/><rect x="22" y="22" width="14" height="14" rx="3" fill="#276f63"/></svg>
+<span>پنجره روشنایی<small>سامانه مدیریت نوبت‌ها</small></span>
+</a>
+<button class="outline hidden" id="logout" type="button">خروج امن</button>
+</header>
+<main>
+<section class="panel login" id="loginPanel">
+<h1>ورود مدیر</h1>
+<p>برای مشاهده و مدیریت درخواست‌های نوبت، رمز مدیریت را وارد کنید.</p>
+<form id="loginForm">
+<label for="password">رمز عبور مدیریت</label>
+<input id="password" type="password" autocomplete="current-password" minlength="16" maxlength="256" required placeholder="رمز عبور" style="direction:ltr;text-align:left">
+<button class="primary" type="submit" id="loginButton" style="width:100%;margin-top:15px">ورود به پنل</button>
+</form>
+<div class="status" id="loginStatus" role="status" aria-live="polite"></div>
+<p class="note">ورود فقط با رمز تعریف‌شده در تنظیمات امن Cloudflare امکان‌پذیر است. پس از ۵ تلاش ناموفق، ورود برای مدتی محدود می‌شود.</p>
+</section>
+<section id="dashboard" class="hidden">
+<div class="top"><div><h1>مدیریت نوبت‌های مشاوره</h1><p>بررسی، تأیید و لغو درخواست‌ها</p></div><button class="outline" id="refresh" type="button">به‌روزرسانی فهرست</button></div>
+<div class="panel">
+<div class="filters">
+<div><label for="dateFilter">فیلتر تاریخ (میلادی)</label><input id="dateFilter" type="date"></div>
+<div><label for="statusFilter">وضعیت</label><select id="statusFilter"><option value="">همه وضعیت‌ها</option><option value="pending">در انتظار تأیید</option><option value="confirmed">تأییدشده</option><option value="cancelled">لغوشده</option></select></div>
+<button class="outline" id="clearFilters" type="button">پاک‌کردن فیلترها</button>
+</div>
+<div class="summary" id="summary" aria-label="آمار فهرست فعلی"></div>
+<div class="table-wrap"><table><thead><tr><th>تاریخ و ساعت</th><th>نام</th><th>موبایل</th><th>کد پیگیری</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div id="empty" class="empty hidden">نوبتی برای نمایش وجود ندارد.</div>
+<div class="status" id="dashboardStatus" role="status" aria-live="polite"></div>
+<div class="note">حداکثر ۱۰۰ درخواست مطابق فیلتر نمایش داده می‌شود. اطلاعات تماس محرمانه است؛ از انتشار تصویر این صفحه خودداری کنید.</div>
+</div>
+</section>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const labels={pending:'در انتظار تأیید',confirmed:'تأییدشده',cancelled:'لغوشده'};
+const loginPanel=$('loginPanel'),dashboard=$('dashboard');
+function status(target,message,error=false){target.textContent=message||'';target.classList.toggle('error',error);}
+function showDashboard(loggedIn){
+ loginPanel.classList.toggle('hidden',loggedIn);
+ dashboard.classList.toggle('hidden',!loggedIn);
+ $('logout').classList.toggle('hidden',!loggedIn);
+ if(!loggedIn){$('rows').replaceChildren();$('summary').replaceChildren();}
+}
+async function api(path,options={}){
+ const response=await fetch(path,{credentials:'same-origin',cache:'no-store',...options,
+ headers:{...(options.body?{'Content-Type':'application/json'}:{}),...(options.method?{'X-Requested-With':'XMLHttpRequest'}:{}),...(options.headers||{})}});
+ let data;try{data=await response.json();}catch{throw new Error('پاسخ سرور معتبر نیست.');}
+ if(!response.ok){
+  if(response.status===401&&path!=='/api/admin/login')showDashboard(false);
+  throw new Error(data.message||'درخواست انجام نشد.');
+ }
+ return data;
+}
+function formatDate(iso){
+ try{return new Intl.DateTimeFormat('fa-IR-u-ca-persian',{year:'numeric',month:'long',day:'numeric'}).format(new Date(iso+'T12:00:00Z'));}
+ catch{return iso;}
+}
+function el(tag,text,cls){const node=document.createElement(tag);if(text!==undefined)node.textContent=String(text);if(cls)node.className=cls;return node;}
+function addCell(tr,child){const td=el('td');if(typeof child==='string')td.textContent=child;else td.append(child);tr.append(td);return td;}
+async function load(){
+ status($('dashboardStatus'),'در حال دریافت نوبت‌ها...');
+ const query=new URLSearchParams();
+ if($('dateFilter').value)query.set('date',$('dateFilter').value);
+ if($('statusFilter').value)query.set('status',$('statusFilter').value);
+ try{
+  const data=await api('/api/admin/appointments?'+query);
+  const rows=$('rows');rows.replaceChildren();
+  const items=data.appointments||[];
+  const counts={pending:0,confirmed:0,cancelled:0};
+  for(const item of items){
+   if(counts[item.status]!==undefined)counts[item.status]++;
+   const tr=el('tr');
+   addCell(tr,formatDate(item.appointment_date)+' · '+item.appointment_time);
+   addCell(tr,item.full_name);
+   addCell(tr,item.phone);
+   addCell(tr,item.id.slice(0,8).toUpperCase());
+   addCell(tr,el('span',labels[item.status]||item.status,'pill '+item.status));
+   const actions=el('div',undefined,'actions');
+   if(item.status==='pending'){
+    const confirmBtn=el('button','تأیید','primary');
+    confirmBtn.type='button';
+    confirmBtn.addEventListener('click',()=>changeStatus(item,'confirmed'));
+    actions.append(confirmBtn);
+   }
+   if(item.status!=='cancelled'){
+    const cancelBtn=el('button','لغو','danger');
+    cancelBtn.type='button';
+    cancelBtn.addEventListener('click',()=>changeStatus(item,'cancelled'));
+    actions.append(cancelBtn);
+   }
+   if(!actions.children.length)actions.append(el('span','—','muted'));
+   addCell(tr,actions);rows.append(tr);
+  }
+  $('empty').classList.toggle('hidden',items.length!==0);
+  const summary=$('summary');summary.replaceChildren();
+  for(const [name,value] of [['نمایش داده‌شده',items.length],['در انتظار',counts.pending],['تأییدشده',counts.confirmed],['لغوشده',counts.cancelled]]){
+   const card=el('div',undefined,'stat');card.append(el('strong',value),el('span',name));summary.append(card);
+  }
+  status($('dashboardStatus'),'فهرست به‌روز شد.');
+ }catch(e){status($('dashboardStatus'),e.message,true);}
+}
+async function changeStatus(item,next){
+ const action=next==='confirmed'?'تأیید':'لغو';
+ if(!confirm('آیا از '+action+' نوبت '+item.full_name+' در '+formatDate(item.appointment_date)+' ساعت '+item.appointment_time+' مطمئن هستید؟'))return;
+ status($('dashboardStatus'),'در حال ثبت تغییر...');
+ try{
+  await api('/api/admin/appointments/'+encodeURIComponent(item.id),{method:'PATCH',body:JSON.stringify({status:next})});
+  await load();
+  status($('dashboardStatus'),'وضعیت نوبت با موفقیت تغییر کرد.');
+ }catch(e){status($('dashboardStatus'),e.message,true);}
+}
+$('loginForm').addEventListener('submit',async e=>{
+ e.preventDefault();const button=$('loginButton');button.disabled=true;
+ status($('loginStatus'),'در حال بررسی رمز...');
+ try{
+  await api('/api/admin/login',{method:'POST',body:JSON.stringify({password:$('password').value})});
+  $('password').value='';showDashboard(true);status($('loginStatus'),'');await load();
+ }catch(err){status($('loginStatus'),err.message,true);}
+ finally{button.disabled=false;}
+});
+$('logout').addEventListener('click',async()=>{
+ try{await api('/api/admin/logout',{method:'POST'});}catch{}
+ showDashboard(false);$('password').value='';status($('loginStatus'),'از حساب مدیر خارج شدید.');
+});
+$('refresh').addEventListener('click',load);
+$('dateFilter').addEventListener('change',load);
+$('statusFilter').addEventListener('change',load);
+$('clearFilters').addEventListener('click',()=>{$('dateFilter').value='';$('statusFilter').value='';load();});
+(async()=>{
+ try{await api('/api/admin/session');showDashboard(true);await load();}
+ catch{showDashboard(false);}
+})();
+</script>
+</body>
+</html>
