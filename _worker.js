@@ -373,8 +373,8 @@ async function accountApi(request,env,url){
    const phone=normalizeDigits(d.phone||'').replace(/[\s-]/g,'').trim();
    const password=d.password;
    const fullName=String(d.fullName||'').trim();
-   if(!/^09[0-9]{9}$/.test(phone)||typeof password!=='string'||password.length<12||password.length>128)
-    return userJson({ok:false,message:'موبایل ۱۱ رقمی و رمز عبور ۱۲ تا ۱۲۸ کاراکتری معتبر وارد کنید.'},400);
+   if(!/^09[0-9]{9}$/.test(phone)||typeof password!=='string'||password.length<5||password.length>128)
+    return userJson({ok:false,message:'موبایل ۱۱ رقمی و رمز عبور ۵ تا ۱۲۸ کاراکتری معتبر وارد کنید.'},400);
    if(isRegister){
     if(fullName.length<3||fullName.length>100)
      return userJson({ok:false,message:'نام و نام خانوادگی باید بین ۳ تا ۱۰۰ کاراکتر باشد.'},400);
