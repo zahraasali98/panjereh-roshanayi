@@ -286,7 +286,8 @@ async function trackAppointment(request,env){
 // Existing guest appointments are intentionally NOT linked by phone alone (unverified phone).
 const USER_COOKIE='__Host-pr_user';
 const USER_TTL=24*60*60;
-const USER_ITERATIONS=210000;
+// PBKDF2 (210,000 iterations) runs in the browser to stay within Workers Free CPU limits.
+// The server stores a separately salted digest of the derived proof.
 const userJson=(data,status=200,extra={})=>new Response(JSON.stringify(data),{
  status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',
  'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY',...extra}
@@ -323,11 +324,9 @@ async function userSession(request,db){
  ).bind(await sha256(token),Math.floor(Date.now()/1000)).first();
  return row||null;
 }
-async function passwordHash(password,saltHex){
- const salt=Uint8Array.from(saltHex.match(/.{2}/g).map(h=>parseInt(h,16)));
- const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveBits']);
- const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations:USER_ITERATIONS},key,256);
- return hex(new Uint8Array(bits));
+async function passwordHash(proof,saltHex){
+ // Database hashes cannot be submitted as authentication proofs.
+ return 'v2$'+await sha256('panjere-roshanayi/account/v2/server/'+saltHex+'/'+proof);
 }
 async function authThrottle(db,request,action){
  const now=Math.floor(Date.now()/1000);
@@ -371,15 +370,15 @@ async function accountApi(request,env,url){
    let d;try{d=await request.json();}catch{return userJson({ok:false,message:'اطلاعات فرم نامعتبر است.'},400);}
    if(!d||typeof d!=='object'||Array.isArray(d))return userJson({ok:false,message:'اطلاعات فرم نامعتبر است.'},400);
    const phone=normalizeDigits(d.phone||'').replace(/[\s-]/g,'').trim();
-   const password=d.password;
+   const proof=d.passwordProof;
    const fullName=String(d.fullName||'').trim();
-   if(!/^09[0-9]{9}$/.test(phone)||typeof password!=='string'||password.length<5||password.length>128)
-    return userJson({ok:false,message:'موبایل ۱۱ رقمی و رمز عبور ۵ تا ۱۲۸ کاراکتری معتبر وارد کنید.'},400);
+   if(!/^09[0-9]{9}$/.test(phone)||typeof proof!=='string'||!/^[a-f0-9]{64}$/.test(proof))
+    return userJson({ok:false,message:'شماره موبایل یا اطلاعات رمز عبور معتبر نیست.'},400);
    if(isRegister){
     if(fullName.length<3||fullName.length>100)
      return userJson({ok:false,message:'نام و نام خانوادگی باید بین ۳ تا ۱۰۰ کاراکتر باشد.'},400);
     const salt=hex(crypto.getRandomValues(new Uint8Array(16)));
-    const hashed=await passwordHash(password,salt);
+    const hashed=await passwordHash(proof,salt);
     const userId=crypto.randomUUID();
     try{
      await env.DB.prepare('INSERT INTO users(id,full_name,phone,password_salt,password_hash) VALUES(?,?,?,?,?)')
@@ -392,9 +391,9 @@ async function accountApi(request,env,url){
     return userJson({ok:true,user:{fullName,phone}},201,{'Set-Cookie':await issueUserSession(env.DB,userId)});
    }
    const user=await env.DB.prepare('SELECT id,full_name,phone,password_salt,password_hash FROM users WHERE phone=?').bind(phone).first();
-   // Keep a similar amount of password hashing work for unknown and known phones.
+   // Do equivalent verification work for known and unknown phone numbers.
    const salt=user?.password_salt||'00000000000000000000000000000000';
-   const hashed=await passwordHash(password,salt);
+   const hashed=await passwordHash(proof,salt);
    if(!user||!secureEqual(hashed,user.password_hash))
     return userJson({ok:false,message:'شماره موبایل یا رمز عبور اشتباه است.'},401);
    return userJson({ok:true,user:{fullName:user.full_name,phone:user.phone}},200,
