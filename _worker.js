@@ -189,7 +189,8 @@ async function adminApi(request,env,url){
    const sql='SELECT id,appointment_date,appointment_time,full_name,phone,created_at,status FROM appointments'
      +(conditions.length?' WHERE '+conditions.join(' AND '):'')
      +' ORDER BY appointment_date DESC,appointment_time ASC,created_at DESC LIMIT 100';
-   const result=await env.DB.prepare(sql).bind(...params).all();
+   const prepared=env.DB.prepare(sql);
+   const result=await (params.length?prepared.bind(...params):prepared).all();
    return adminJson({ok:true,appointments:result.results||[]});
   }
   const match=path.match(/^\/api\/admin\/appointments\/([a-f0-9-]{36})$/i);
