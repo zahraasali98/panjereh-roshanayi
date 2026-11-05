@@ -46,6 +46,23 @@ tr:last-child td{border-bottom:0}
 td .actions{flex-wrap:nowrap}
 .pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:.76rem;white-space:nowrap}
 .pending{background:#fff6e4;color:#875b13}.confirmed{background:#e7f7ee;color:#216b48}.cancelled{background:#fff0ef;color:#a3443e}
+.date-picker{position:relative;min-width:0}
+.date-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;text-align:right;border:1px solid #d6e5dd;border-radius:11px;background:#fbfdfc;color:#203d38;min-height:46px;padding:10px 12px;font-weight:500}
+.date-trigger .calendar-icon{color:#478e7b;font-size:1.2rem}
+.date-trigger.is-empty{color:#7a8e85}
+.jalali-popover{position:absolute;z-index:50;top:calc(100% + 8px);right:0;width:min(350px,calc(100vw - 42px));padding:15px;background:#fff;border:1px solid #dce9e2;border-radius:16px;box-shadow:0 16px 45px #234b4030}
+.jalali-popover[hidden]{display:none}
+.jalali-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px}
+.jalali-head strong{font-size:.95rem}
+.jalali-head button{background:#eef7f2;color:#266c5d;min-height:35px;padding:5px 10px;font-size:.79rem}
+.jalali-week,.jalali-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}
+.jalali-week{color:#779185;font-size:.78rem;margin-bottom:8px}
+.jalali-days button{border:0;min-height:38px;padding:4px 0;background:transparent;border-radius:9px;color:#2c5145;font-size:.84rem;font-weight:500}
+.jalali-days button:hover{background:#e9f6ef}
+.jalali-days button[aria-pressed=true]{background:#237b6b;color:#fff;font-weight:800}
+.jalali-days button.today:not([aria-pressed=true]){box-shadow:inset 0 0 0 1px #77b7a2}
+.jalali-footer{display:flex;justify-content:space-between;gap:8px;margin-top:12px;border-top:1px solid #e6eee9;padding-top:11px}
+.jalali-footer button{background:#f0f7f3;color:#226756;min-height:34px;font-size:.8rem;padding:5px 10px}
 .hidden{display:none!important}
 .empty{padding:30px;text-align:center;color:#74877d}
 .note{margin-top:15px;color:#7a8c83;font-size:.78rem;line-height:1.9}
@@ -76,7 +93,15 @@ td .actions{flex-wrap:nowrap}
 <div class="top"><div><h1>مدیریت نوبت‌های مشاوره</h1><p>بررسی، تأیید و لغو درخواست‌ها</p></div><button class="outline" id="refresh" type="button">به‌روزرسانی فهرست</button></div>
 <div class="panel">
 <div class="filters">
-<div><label for="dateFilter">فیلتر تاریخ (میلادی)</label><input id="dateFilter" type="date"></div>
+<div class="date-picker"><label id="dateFilterLabel" for="dateTrigger">فیلتر تاریخ (شمسی)</label>
+<input id="dateFilter" type="hidden">
+<button id="dateTrigger" class="date-trigger is-empty" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="jalaliPopover" aria-labelledby="dateFilterLabel dateSelected"><span id="dateSelected">همه تاریخ‌ها</span><span class="calendar-icon" aria-hidden="true">▦</span></button>
+<div id="jalaliPopover" class="jalali-popover" role="dialog" aria-label="انتخاب تاریخ شمسی برای فیلتر" hidden>
+<div class="jalali-head"><button id="jalaliPrev" type="button" aria-label="ماه قبل">ماه قبل</button><strong id="jalaliMonth"></strong><button id="jalaliNext" type="button" aria-label="ماه بعد">ماه بعد</button></div>
+<div class="jalali-week" aria-hidden="true"><span>ش</span><span>ی</span><span>د</span><span>س</span><span>چ</span><span>پ</span><span>ج</span></div>
+<div class="jalali-days" id="jalaliDays"></div>
+<div class="jalali-footer"><button type="button" id="jalaliToday">برو به امروز</button><button type="button" id="jalaliClear">همه تاریخ‌ها</button></div>
+</div></div>
 <div><label for="statusFilter">وضعیت</label><select id="statusFilter"><option value="">همه وضعیت‌ها</option><option value="pending">در انتظار تأیید</option><option value="confirmed">تأییدشده</option><option value="cancelled">لغوشده</option></select></div>
 <button class="outline" id="clearFilters" type="button">پاک‌کردن فیلترها</button>
 </div>
@@ -114,6 +139,70 @@ function formatDate(iso){
  try{return new Intl.DateTimeFormat('fa-IR-u-ca-persian',{year:'numeric',month:'long',day:'numeric'}).format(new Date(iso+'T12:00:00Z'));}
  catch{return iso;}
 }
+// Jalali calendar for the admin filter. D1/API continues to receive ISO Gregorian dates.
+const jalaliMonthFormat=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{timeZone:'UTC',year:'numeric',month:'long'});
+const jalaliDayFormat=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{timeZone:'UTC',day:'numeric'});
+const jalaliNumericFormat=new Intl.DateTimeFormat('en-US-u-ca-persian',{timeZone:'UTC',day:'numeric'});
+const jalaliFullFormat=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{timeZone:'UTC',year:'numeric',month:'long',day:'numeric'});
+const dayMs=86400000;
+const isoDate=date=>date.toISOString().slice(0,10);
+const utcDate=iso=>new Date(iso+'T12:00:00Z');
+const addDays=(date,days)=>new Date(date.getTime()+days*dayMs);
+function tehranToday(){
+ const parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(p=>[p.type,p.value]));
+ return parts.year+'-'+parts.month+'-'+parts.day;
+}
+function persianMonthStart(date){
+ const day=Number(jalaliNumericFormat.format(date));
+ return addDays(date,1-day);
+}
+const dateInput=$('dateFilter'),dateTrigger=$('dateTrigger'),datePopover=$('jalaliPopover');
+let calendarMonthStart=persianMonthStart(utcDate(tehranToday()));
+function setCalendarOpen(open){
+ datePopover.hidden=!open;
+ dateTrigger.setAttribute('aria-expanded',String(open));
+ if(open)renderJalaliCalendar();
+}
+function setDateFilter(iso){
+ dateInput.value=iso||'';
+ $('dateSelected').textContent=iso?jalaliFullFormat.format(utcDate(iso)):'همه تاریخ‌ها';
+ dateTrigger.classList.toggle('is-empty',!iso);
+ setCalendarOpen(false);
+ load();
+}
+function renderJalaliCalendar(){
+ $('jalaliMonth').textContent=jalaliMonthFormat.format(calendarMonthStart);
+ const days=$('jalaliDays');days.replaceChildren();
+ const startOffset=(calendarMonthStart.getUTCDay()+1)%7; // Saturday first
+ for(let i=0;i<startOffset;i++){
+  const blank=document.createElement('span');blank.setAttribute('aria-hidden','true');days.append(blank);
+ }
+ const currentMonth=jalaliMonthFormat.format(calendarMonthStart);
+ const today=tehranToday();
+ for(let offset=0;offset<32;offset++){
+  const day=addDays(calendarMonthStart,offset);
+  if(jalaliMonthFormat.format(day)!==currentMonth)break;
+  const iso=isoDate(day),button=document.createElement('button');
+  button.type='button';
+  button.textContent=jalaliDayFormat.format(day);
+  button.setAttribute('aria-label',jalaliFullFormat.format(day));
+  button.setAttribute('aria-pressed',String(dateInput.value===iso));
+  if(iso===today)button.classList.add('today');
+  button.addEventListener('click',()=>setDateFilter(iso));
+  days.append(button);
+ }
+}
+dateTrigger.addEventListener('click',()=>setCalendarOpen(datePopover.hidden));
+$('jalaliPrev').addEventListener('click',()=>{calendarMonthStart=persianMonthStart(addDays(calendarMonthStart,-1));renderJalaliCalendar();});
+$('jalaliNext').addEventListener('click',()=>{calendarMonthStart=persianMonthStart(addDays(calendarMonthStart,32));renderJalaliCalendar();});
+$('jalaliToday').addEventListener('click',()=>{calendarMonthStart=persianMonthStart(utcDate(tehranToday()));renderJalaliCalendar();});
+$('jalaliClear').addEventListener('click',()=>setDateFilter(''));
+document.addEventListener('click',event=>{
+ if(!datePopover.hidden&&!datePopover.contains(event.target)&&!dateTrigger.contains(event.target))setCalendarOpen(false);
+});
+document.addEventListener('keydown',event=>{
+ if(event.key==='Escape'&&!datePopover.hidden){setCalendarOpen(false);dateTrigger.focus();}
+});
 function el(tag,text,cls){const node=document.createElement(tag);if(text!==undefined)node.textContent=String(text);if(cls)node.className=cls;return node;}
 function addCell(tr,child){const td=el('td');if(typeof child==='string')td.textContent=child;else td.append(child);tr.append(td);return td;}
 async function load(){
@@ -182,9 +271,9 @@ $('logout').addEventListener('click',async()=>{
  showDashboard(false);$('password').value='';status($('loginStatus'),'از حساب مدیر خارج شدید.');
 });
 $('refresh').addEventListener('click',load);
-$('dateFilter').addEventListener('change',load);
+
 $('statusFilter').addEventListener('change',load);
-$('clearFilters').addEventListener('click',()=>{$('dateFilter').value='';$('statusFilter').value='';load();});
+$('clearFilters').addEventListener('click',()=>{$('statusFilter').value='';setDateFilter('');});
 (async()=>{
  try{await api('/api/admin/session');showDashboard(true);await load();}
  catch{showDashboard(false);}
