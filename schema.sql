@@ -10,3 +10,16 @@ CREATE TABLE IF NOT EXISTS appointments (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS uniq_active_slot ON appointments(appointment_date,appointment_time) WHERE status IN ('pending','confirmed');
 CREATE INDEX IF NOT EXISTS idx_appointment_date ON appointments(appointment_date);
+
+-- Admin authentication: only SHA-256 hashes of session tokens and IPs are stored.
+-- These tables are also created automatically on the first admin login.
+CREATE TABLE IF NOT EXISTS admin_sessions (
+ token_hash TEXT PRIMARY KEY,
+ expires_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS admin_login_attempts (
+ ip_hash TEXT PRIMARY KEY,
+ failures INTEGER NOT NULL,
+ window_start INTEGER NOT NULL,
+ blocked_until INTEGER NOT NULL DEFAULT 0
+);
