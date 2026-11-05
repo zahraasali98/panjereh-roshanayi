@@ -47,7 +47,7 @@
         /* بستن منو با کلیک روی لینک‌ها */
         $$('a', mainNav).forEach(function (link) {
             link.addEventListener('click', function () {
-                if (window.innerWidth <= 900) {
+                if (window.innerWidth <= 1100) {
                     closeMenu();
                 }
             });
@@ -55,7 +55,7 @@
 
         /* بستن منو با کلیک بیرون */
         document.addEventListener('click', function (e) {
-            if (window.innerWidth > 900) return;
+            if (window.innerWidth > 1100) return;
             if (!mainNav.classList.contains('open')) return;
             if (mainNav.contains(e.target)) return;
             if (navToggle.contains(e.target)) return;
@@ -69,7 +69,7 @@
 
         /* بازنشانی هنگام تغییر اندازه */
         window.addEventListener('resize', function () {
-            if (window.innerWidth > 900) {
+            if (window.innerWidth > 1100) {
                 closeMenu();
             }
         });
