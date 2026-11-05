@@ -134,7 +134,7 @@ times([]);calendarTimeWrap.hidden=true;const date=dateEl.value;if(!date)return;
 if(friday(date)){message('جمعه تعطیل است؛ روز دیگری انتخاب کنید.','error');return;}
 if(demo){times(['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00']);calendarTimeWrap.hidden=false;return;}
 message('در حال بررسی ساعت‌های آزاد…','notice');
-try{const r=await fetch('/api/appointments/slots?date='+encodeURIComponent(date),{cache:'no-store'});const d=await r.json();if(!r.ok||!d.ok)throw Error(d.message||'دریافت ساعت‌ها ممکن نشد.');times(d.available);calendarTimeWrap.hidden=!d.available.length;message(d.available.length?'ساعت‌های آزاد نمایش داده شدند.':'برای این روز ساعت آزادی وجود ندارد.','notice');}catch(e){message(e.message||'خطای ارتباط با سامانه.','error');}
+try{const r=await fetch('/api/appointments/slots?date='+encodeURIComponent(date),{cache:'no-store'});const d=await r.json();if(dateEl.value!==date)return;if(!r.ok||!d.ok)throw Error(d.message||'دریافت ساعت‌ها ممکن نشد.');times(d.available);calendarTimeWrap.hidden=!d.available.length;message(d.available.length?'ساعت‌های آزاد نمایش داده شدند.':'برای این روز ساعت آزادی وجود ندارد.','notice');}catch(e){if(dateEl.value===date)message(e.message||'خطای ارتباط با سامانه.','error');}
 });
 function latin(s){return String(s).replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-1776)).replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-1632));}
 form.addEventListener('submit',async e=>{
