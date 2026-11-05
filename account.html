@@ -162,6 +162,14 @@ async function loadAppointments(){
    const tr=el('tr');
    for(const value of [dateFa(item.date),item.time,item.reference])tr.append(el('td',value));
    const td=el('td');td.append(el('span',labels[item.status]||item.status,'pill '+item.status));tr.append(td);
+   const actions=el('td');
+   if(item.status!=='cancelled'){
+    const button=el('button','لغو نوبت','danger');
+    button.type='button';
+    button.onclick=()=>cancelBooking(item.reference);
+    actions.append(button);
+   }
+   tr.append(actions);
    tbody.append(tr);
   }
   const total=(data.appointments||[]).length;
