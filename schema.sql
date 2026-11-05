@@ -23,3 +23,11 @@ CREATE TABLE IF NOT EXISTS admin_login_attempts (
  window_start INTEGER NOT NULL,
  blocked_until INTEGER NOT NULL DEFAULT 0
 );
+
+-- Public booking tracking: a rate-limit counter, not patient information.
+-- The tracking endpoint also creates this table on its first request.
+CREATE TABLE IF NOT EXISTS tracking_attempts (
+ ip_hash TEXT PRIMARY KEY,
+ window_start INTEGER NOT NULL,
+ attempts INTEGER NOT NULL
+);
