@@ -170,7 +170,12 @@ async function loadAppointments(){
    for(const value of [dateFa(item.date),item.time,item.reference])tr.append(el('td',value));
    const td=el('td');td.append(el('span',labels[item.status]||item.status,'pill '+item.status));tr.append(td);
    const actions=el('td');
-   if(item.status!=='cancelled'){
+   const parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',{
+    timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+   }).formatToParts(new Date()).map(p=>[p.type,p.value]));
+   const now=parts.year+'-'+parts.month+'-'+parts.day+' '+parts.hour+':'+parts.minute;
+   if(item.status!=='cancelled'&&(item.date+' '+item.time)>now){
     const button=el('button','لغو نوبت','danger');
     button.type='button';
     button.onclick=()=>cancelBooking(item.reference);
