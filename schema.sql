@@ -31,3 +31,27 @@ CREATE TABLE IF NOT EXISTS tracking_attempts (
  window_start INTEGER NOT NULL,
  attempts INTEGER NOT NULL
 );
+
+-- Visitor accounts. Passwords use PBKDF2-SHA256 with per-user random salts.
+-- Tables and the appointments.user_id migration are created automatically by the Worker.
+CREATE TABLE IF NOT EXISTS users (
+ id TEXT PRIMARY KEY,
+ full_name TEXT NOT NULL,
+ phone TEXT NOT NULL UNIQUE,
+ password_salt TEXT NOT NULL,
+ password_hash TEXT NOT NULL,
+ created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS user_sessions (
+ token_hash TEXT PRIMARY KEY,
+ user_id TEXT NOT NULL,
+ expires_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS user_auth_attempts (
+ key_hash TEXT PRIMARY KEY,
+ attempts INTEGER NOT NULL,
+ window_start INTEGER NOT NULL
+);
+-- For an EXISTING appointments table only, run this ONCE if user_id is missing:
+-- ALTER TABLE appointments ADD COLUMN user_id TEXT;
+-- CREATE INDEX IF NOT EXISTS idx_appointments_user_id ON appointments(user_id,appointment_date);
