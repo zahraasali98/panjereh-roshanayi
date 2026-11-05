@@ -6,6 +6,7 @@ const subjects = { consult:'درخواست مشاوره',visit:'رزرو وقت'
 export default {
  async fetch(request, env) {
    const url = new URL(request.url);
+   if (url.pathname.startsWith('/api/account/')) return accountApi(request,env,url);
    if (url.pathname.startsWith('/api/admin/')) return adminApi(request,env,url);
    if (url.pathname === '/admin.html') {
      const response=await env.ASSETS.fetch(request);
@@ -79,8 +80,22 @@ async function createAppointment(request,env){
  if(fullName.length<3||fullName.length>100||!/^09[0-9]{9}$/.test(phone)||!validDate(date)||!HOURS.includes(time)||!futureSlot(date,time))
  return json({ok:false,message:'نام، موبایل، تاریخ یا ساعت معتبر نیست.'},400);
  try{
+  const hasAccountCookie=/(?:^|;\s*)__Host-pr_user=/.test(request.headers.get('cookie')||'');
+  let user=null;
+  if(hasAccountCookie){
+   user=await userSession(request,env.DB);
+   if(!user)return json({ok:false,message:'نشست حساب کاربری منقضی شده است. دوباره وارد شوید.'},401);
+   if(phone!==user.phone||fullName!==user.full_name)
+    return json({ok:false,message:'نام و شماره موبایل باید با حساب کاربری شما مطابقت داشته باشند.'},400);
+  }
   const id=crypto.randomUUID();
-  await env.DB.prepare('INSERT INTO appointments(id,appointment_date,appointment_time,full_name,phone) VALUES(?,?,?,?,?)').bind(id,date,time,fullName,phone).run();
+  if(user){
+   await env.DB.prepare('INSERT INTO appointments(id,appointment_date,appointment_time,full_name,phone,user_id) VALUES(?,?,?,?,?,?)')
+    .bind(id,date,time,fullName,phone,user.id).run();
+  }else{
+   await env.DB.prepare('INSERT INTO appointments(id,appointment_date,appointment_time,full_name,phone) VALUES(?,?,?,?,?)')
+    .bind(id,date,time,fullName,phone).run();
+  }
   return json({ok:true,reference:id.slice(0,8).toUpperCase()},201);
  }catch(e){
   if(/UNIQUE constraint failed/i.test(String(e)))return json({ok:false,message:'این ساعت قبلاً رزرو شده است؛ ساعت دیگری انتخاب کنید.'},409);
@@ -263,5 +278,150 @@ async function trackAppointment(request,env){
  }catch(e){
   console.error('tracking lookup failed');
   return json({ok:false,message:'پیگیری نوبت در حال حاضر ممکن نیست؛ لطفاً دوباره تلاش کنید.'},500);
+ }
+}
+
+
+// Demo visitor accounts: account ownership is scoped to appointments created while signed in.
+// Existing guest appointments are intentionally NOT linked by phone alone (unverified phone).
+const USER_COOKIE='__Host-pr_user';
+const USER_TTL=24*60*60;
+const USER_ITERATIONS=210000;
+const userJson=(data,status=200,extra={})=>new Response(JSON.stringify(data),{
+ status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',
+ 'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY',...extra}
+});
+const userCookie=(token,maxAge)=>USER_COOKIE+'='+token+'; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age='+maxAge;
+const hex=bytes=>Array.from(bytes).map(b=>b.toString(16).padStart(2,'0')).join('');
+let userSchemaPromise;
+async function ensureUserSchema(db){
+ if(!userSchemaPromise){
+  userSchemaPromise=(async()=>{
+   await db.prepare('CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, full_name TEXT NOT NULL, phone TEXT NOT NULL UNIQUE, password_salt TEXT NOT NULL, password_hash TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime(\'now\')))').run();
+   await db.prepare('CREATE TABLE IF NOT EXISTS user_sessions (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL, expires_at INTEGER NOT NULL)').run();
+   await db.prepare('CREATE TABLE IF NOT EXISTS user_auth_attempts (key_hash TEXT PRIMARY KEY, attempts INTEGER NOT NULL, window_start INTEGER NOT NULL)').run();
+   const columns=await db.prepare('PRAGMA table_info(appointments)').all();
+   if(!(columns.results||[]).some(c=>c.name==='user_id')){
+    try{await db.prepare('ALTER TABLE appointments ADD COLUMN user_id TEXT').run();}
+    catch(e){if(!/duplicate column name/i.test(String(e)))throw e;}
+   }
+   await db.prepare('CREATE INDEX IF NOT EXISTS idx_appointments_user_id ON appointments(user_id,appointment_date)').run();
+  })().catch(e=>{userSchemaPromise=null;throw e;});
+ }
+ return userSchemaPromise;
+}
+function userTokenFromCookie(request){
+ const match=(request.headers.get('cookie')||'').match(/(?:^|;\s*)__Host-pr_user=([A-Za-z0-9_-]{43})(?:;|$)/);
+ return match?match[1]:null;
+}
+async function userSession(request,db){
+ const token=userTokenFromCookie(request);
+ if(!token)return null;
+ await ensureUserSchema(db);
+ const row=await db.prepare(
+  'SELECT u.id,u.full_name,u.phone,s.token_hash FROM user_sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? LIMIT 1'
+ ).bind(await sha256(token),Math.floor(Date.now()/1000)).first();
+ return row||null;
+}
+async function passwordHash(password,saltHex){
+ const salt=Uint8Array.from(saltHex.match(/.{2}/g).map(h=>parseInt(h,16)));
+ const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveBits']);
+ const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations:USER_ITERATIONS},key,256);
+ return hex(new Uint8Array(bits));
+}
+async function authThrottle(db,request,action){
+ const now=Math.floor(Date.now()/1000);
+ const period=action==='register'?3600:900;
+ const max=action==='register'?5:10;
+ const ip=request.headers.get('CF-Connecting-IP')||'unknown';
+ const key=await sha256(action+':'+ip);
+ await db.prepare(
+  'INSERT INTO user_auth_attempts(key_hash,attempts,window_start) VALUES(?,1,?) '+
+  'ON CONFLICT(key_hash) DO UPDATE SET attempts=CASE WHEN window_start<=? THEN 1 ELSE attempts+1 END,'+
+  'window_start=CASE WHEN window_start<=? THEN excluded.window_start ELSE window_start END'
+ ).bind(key,now,now-period,now-period).run();
+ const result=await db.prepare('SELECT attempts FROM user_auth_attempts WHERE key_hash=?').bind(key).first();
+ return Number(result?.attempts)<=max;
+}
+async function issueUserSession(db,userId){
+ const token=adminToken();
+ const now=Math.floor(Date.now()/1000);
+ await db.prepare('INSERT INTO user_sessions(token_hash,user_id,expires_at) VALUES(?,?,?)')
+  .bind(await sha256(token),userId,now+USER_TTL).run();
+ return userCookie(token,USER_TTL);
+}
+async function accountApi(request,env,url){
+ if(!env.DB)return userJson({ok:false,message:'سامانه حساب کاربری موقتاً در دسترس نیست.'},503);
+ const path=url.pathname;
+ if(['POST','PUT','PATCH','DELETE'].includes(request.method)){
+  if(request.headers.get('origin')!==url.origin||request.headers.get('x-requested-with')!=='XMLHttpRequest')
+   return userJson({ok:false,message:'درخواست از مبدأ مجاز نیست.'},403);
+  if(request.headers.get('content-type')?.split(';')[0].trim()!=='application/json')
+   return userJson({ok:false,message:'فرمت درخواست معتبر نیست.'},415);
+  if(Number(request.headers.get('content-length')||0)>2048)
+   return userJson({ok:false,message:'درخواست بیش از حد طولانی است.'},413);
+ }
+ try{
+  await ensureUserSchema(env.DB);
+  if(path==='/api/account/register'||path==='/api/account/login'){
+   if(request.method!=='POST')return userJson({ok:false,message:'روش درخواست معتبر نیست.'},405);
+   const isRegister=path.endsWith('/register');
+   if(!await authThrottle(env.DB,request,isRegister?'register':'login'))
+    return userJson({ok:false,message:'تلاش‌های زیادی انجام شده است. لطفاً بعداً دوباره امتحان کنید.'},429);
+   let d;try{d=await request.json();}catch{return userJson({ok:false,message:'اطلاعات فرم نامعتبر است.'},400);}
+   if(!d||typeof d!=='object'||Array.isArray(d))return userJson({ok:false,message:'اطلاعات فرم نامعتبر است.'},400);
+   const phone=normalizeDigits(d.phone||'').replace(/[\s-]/g,'').trim();
+   const password=d.password;
+   const fullName=String(d.fullName||'').trim();
+   if(!/^09[0-9]{9}$/.test(phone)||typeof password!=='string'||password.length<12||password.length>128)
+    return userJson({ok:false,message:'موبایل ۱۱ رقمی و رمز عبور ۱۲ تا ۱۲۸ کاراکتری معتبر وارد کنید.'},400);
+   if(isRegister){
+    if(fullName.length<3||fullName.length>100)
+     return userJson({ok:false,message:'نام و نام خانوادگی باید بین ۳ تا ۱۰۰ کاراکتر باشد.'},400);
+    const salt=hex(crypto.getRandomValues(new Uint8Array(16)));
+    const hashed=await passwordHash(password,salt);
+    const userId=crypto.randomUUID();
+    try{
+     await env.DB.prepare('INSERT INTO users(id,full_name,phone,password_salt,password_hash) VALUES(?,?,?,?,?)')
+      .bind(userId,fullName,phone,salt,hashed).run();
+    }catch(e){
+     if(/UNIQUE constraint failed/i.test(String(e)))
+      return userJson({ok:false,message:'با این شماره موبایل قبلاً حسابی ساخته شده است.'},409);
+     throw e;
+    }
+    return userJson({ok:true,user:{fullName,phone}},201,{'Set-Cookie':await issueUserSession(env.DB,userId)});
+   }
+   const user=await env.DB.prepare('SELECT id,full_name,phone,password_salt,password_hash FROM users WHERE phone=?').bind(phone).first();
+   // Keep a similar amount of password hashing work for unknown and known phones.
+   const salt=user?.password_salt||'00000000000000000000000000000000';
+   const hashed=await passwordHash(password,salt);
+   if(!user||!secureEqual(hashed,user.password_hash))
+    return userJson({ok:false,message:'شماره موبایل یا رمز عبور اشتباه است.'},401);
+   return userJson({ok:true,user:{fullName:user.full_name,phone:user.phone}},200,
+    {'Set-Cookie':await issueUserSession(env.DB,user.id)});
+  }
+  const user=await userSession(request,env.DB);
+  if(!user)return userJson({ok:false,message:'ابتدا وارد حساب کاربری خود شوید.'},401);
+  if(path==='/api/account/session'){
+   return request.method==='GET'?userJson({ok:true,user:{fullName:user.full_name,phone:user.phone}}):userJson({ok:false},405);
+  }
+  if(path==='/api/account/logout'){
+   if(request.method!=='POST')return userJson({ok:false},405);
+   await env.DB.prepare('DELETE FROM user_sessions WHERE token_hash=?').bind(user.token_hash).run();
+   return userJson({ok:true},200,{'Set-Cookie':userCookie('',0)});
+  }
+  if(path==='/api/account/appointments'){
+   if(request.method!=='GET')return userJson({ok:false},405);
+   const data=await env.DB.prepare(
+    'SELECT id,appointment_date,appointment_time,status FROM appointments WHERE user_id=? ORDER BY appointment_date DESC,appointment_time DESC LIMIT 100'
+   ).bind(user.id).all();
+   return userJson({ok:true,appointments:(data.results||[]).map(a=>({
+    reference:a.id.slice(0,8).toUpperCase(),date:a.appointment_date,time:a.appointment_time,status:a.status
+   }))});
+  }
+  return userJson({ok:false,message:'مسیر پیدا نشد.'},404);
+ }catch(e){
+  console.error('account api failed',String(e).slice(0,100));
+  return userJson({ok:false,message:'خطای سامانه؛ لطفاً دوباره تلاش کنید.'},500);
  }
 }
