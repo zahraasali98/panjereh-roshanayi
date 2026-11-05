@@ -151,6 +151,13 @@ function el(tag,value,cls){
  if(cls)node.className=cls;
  return node;
 }
+async function cancelBooking(reference){
+ if(!confirm('آیا از لغو این نوبت مطمئن هستید؟'))return;
+ try{
+  await api('/api/account/appointments/cancel',{method:'POST',body:JSON.stringify({reference})});
+  await loadAppointments();
+ }catch(error){message('dashboardMessage',error.message,true);}
+}
 async function loadAppointments(){
  message('dashboardMessage','در حال دریافت نوبت‌ها...');
  try{
