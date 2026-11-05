@@ -3,6 +3,27 @@
 const form=document.getElementById('bookingForm');if(!form)return;
 const dateEl=document.getElementById('appointmentDate'),timeEl=document.getElementById('appointmentTime'),statusEl=document.getElementById('bookingStatus'),submitEl=document.getElementById('bookingSubmit');
 const demo=location.hostname.endsWith('github.io')||location.protocol==='file:';
+let currentUser=null;
+async function loadAccount(){
+ if(demo)return;
+ try{
+  const response=await fetch('/api/account/session',{credentials:'same-origin',cache:'no-store'});
+  if(!response.ok)return;
+  const data=await response.json();
+  if(!data.ok||!data.user)return;
+  currentUser=data.user;
+  const nameInput=document.getElementById('bookingName'),phoneInput=document.getElementById('bookingPhone');
+  nameInput.value=currentUser.fullName;phoneInput.value=currentUser.phone;
+  nameInput.readOnly=true;phoneInput.readOnly=true;
+  const info=document.getElementById('bookingAccountInfo');
+  if(info){
+   info.textContent='با حساب '+currentUser.fullName+' وارد شده‌اید؛ این نوبت در بخش «نوبت‌های من» ذخیره می‌شود.';
+   info.hidden=false;
+  }
+ }catch{}
+}
+loadAccount();
+
 function message(t,type){statusEl.textContent=t;statusEl.className='booking-status '+(type||'');statusEl.hidden=false;}
 function iranDate(offset){const p=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(Date.now()+offset*86400000)).map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day;}
 function friday(d){return new Date(d+'T00:00:00Z').getUTCDay()===5;}
@@ -121,7 +142,7 @@ e.preventDefault();if(demo)return;
 const fullName=document.getElementById('bookingName').value.trim(),phone=latin(document.getElementById('bookingPhone').value.trim());
 if(fullName.length<3||fullName.length>100||!/^09[0-9]{9}$/.test(phone)||!dateEl.value||!timeEl.value||!document.getElementById('bookingConsent').checked){message('لطفاً همه اطلاعات را درست وارد کنید.','error');return;}
 submitEl.disabled=true;message('در حال ثبت درخواست…','notice');
-try{const r=await fetch('/api/appointments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fullName,phone,date:dateEl.value,time:timeEl.value,website:document.getElementById('bookingWebsite').value})});const d=await r.json();if(!r.ok||!d.ok)throw Error(d.message||'ثبت انجام نشد.');message('درخواست ثبت شد. کد پیگیری: '+d.reference+' — در انتظار تأیید کلینیک.','success');form.reset();times([]);selectedEl.textContent="انتخاب تاریخ و ساعت";calendarTimeWrap.hidden=true;triggerEl.classList.remove("has-date");renderCalendar();}
+try{const r=await fetch('/api/appointments',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({fullName,phone,date:dateEl.value,time:timeEl.value,website:document.getElementById('bookingWebsite').value})});const d=await r.json();if(!r.ok||!d.ok)throw Error(d.message||'ثبت انجام نشد.');message('درخواست ثبت شد. کد پیگیری: '+d.reference+' — در انتظار تأیید کلینیک.'+(currentUser?' نوبت در حساب شما هم ذخیره شد.':''),'success');form.reset();if(currentUser){document.getElementById('bookingName').value=currentUser.fullName;document.getElementById('bookingPhone').value=currentUser.phone;}times([]);selectedEl.textContent="انتخاب تاریخ و ساعت";calendarTimeWrap.hidden=true;triggerEl.classList.remove("has-date");renderCalendar();}
 catch(err){message(err.message||'ثبت انجام نشد؛ تلفنی تماس بگیرید.','error');if(dateEl.value)dateEl.dispatchEvent(new Event('change'));}finally{submitEl.disabled=false;}
 });
 })();
