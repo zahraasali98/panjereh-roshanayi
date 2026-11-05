@@ -115,6 +115,13 @@ tr:last-child td{border-bottom:0}
 const $=id=>document.getElementById(id);
 const labels={pending:'در انتظار تأیید',confirmed:'تأییدشده',cancelled:'لغوشده'};
 const latin=value=>String(value).replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-1776)).replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-1632));
+async function passwordProof(password,phone){
+ // Password stretching happens on the user's device, not in the Worker.
+ const salt=new TextEncoder().encode('panjere-roshanayi/account/v2/'+latin(phone).trim());
+ const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveBits']);
+ const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations:210000},key,256);
+ return Array.from(new Uint8Array(bits),b=>b.toString(16).padStart(2,'0')).join('');
+}
 function message(id,text,error=false){$(id).textContent=text||'';$(id).classList.toggle('error',error);}
 function showDashboard(show){
  $('dashboard').classList.toggle('hidden',!show);
@@ -203,7 +210,9 @@ $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();
  const button=$('loginSubmit');button.disabled=true;message('authMessage','در حال ورود...');
  try{
-  const data=await api('/api/account/login',{method:'POST',body:JSON.stringify({phone:latin($('loginPhone').value),password:$('loginPassword').value})});
+  const phone=latin($('loginPhone').value).trim();
+  const proof=await passwordProof($('loginPassword').value,phone);
+  const data=await api('/api/account/login',{method:'POST',body:JSON.stringify({phone,passwordProof:proof})});
   await onLogin(data.user);
  }catch(error){message('authMessage',error.message,true);}
  finally{button.disabled=false;}
@@ -214,7 +223,9 @@ $('registerForm').addEventListener('submit',async e=>{
  if(password!==$('confirmPassword').value){message('authMessage','رمز عبور و تکرار آن یکسان نیستند.',true);return;}
  const button=$('registerSubmit');button.disabled=true;message('authMessage','در حال ساخت حساب...');
  try{
-  const data=await api('/api/account/register',{method:'POST',body:JSON.stringify({fullName:$('registerName').value.trim(),phone:latin($('registerPhone').value),password})});
+  const phone=latin($('registerPhone').value).trim();
+  const proof=await passwordProof(password,phone);
+  const data=await api('/api/account/register',{method:'POST',body:JSON.stringify({fullName:$('registerName').value.trim(),phone,passwordProof:proof})});
   await onLogin(data.user);
  }catch(error){message('authMessage',error.message,true);}
  finally{button.disabled=false;}
