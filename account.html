@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>حساب کاربری | پنجره روشنایی</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{font-family:Vazirmatn,Tahoma,sans-serif;color:#203e37;background:#f5faf7}
+*{box-sizing:border-box}body{margin:0;min-height:100vh}
+button,input{font:inherit}a{color:#287a68;text-decoration:none}a:hover{text-decoration:underline}
+header{background:#fff;border-bottom:1px solid #e3ece7}
+.head{max-width:1050px;margin:auto;padding:15px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;color:#235e53}.brand small{display:block;color:#81968c;font-weight:500;font-size:.76rem}
+.brand svg{width:40px;height:40px}
+nav{display:flex;gap:17px;font-size:.86rem;flex-wrap:wrap}
+main{max-width:860px;margin:42px auto 80px;padding:0 18px}
+h1{font-size:clamp(1.55rem,3vw,2rem);margin:0 0 7px}
+.intro{font-size:.91rem;color:#748b7f;line-height:1.9;margin:0 0 22px}
+.card{background:#fff;border:1px solid #e1ebe5;border-radius:20px;padding:clamp(18px,4vw,32px);box-shadow:0 15px 40px #245d4310}
+.auth-card{max-width:510px;margin:auto}
+.tabs{display:flex;gap:7px;padding:5px;background:#eff6f1;border-radius:13px;margin-bottom:22px}
+.tabs button{flex:1;background:transparent;color:#5d7b6d;border:0;padding:11px;border-radius:10px;font-weight:700}
+.tabs button[aria-selected=true]{background:#fff;color:#246c5b;box-shadow:0 2px 8px #244b3917}
+label{display:block;font-size:.86rem;font-weight:700;margin-bottom:7px}
+.field{margin-bottom:17px}
+input{width:100%;border:1px solid #d9e7de;background:#fbfdfb;border-radius:11px;padding:12px 14px;min-height:48px}
+input:focus,button:focus-visible{outline:2px solid #32937d;outline-offset:2px}
+input[type=tel]{direction:ltr;text-align:left}
+button{cursor:pointer;min-height:43px;border-radius:11px;border:0;padding:10px 16px}
+button:disabled{opacity:.55;cursor:not-allowed}
+.primary{background:#257c6a;color:#fff;font-weight:700}.primary:hover:not(:disabled){background:#176454}
+.outline{border:1px solid #bad6ca;color:#236959;background:#fff;font-weight:700}
+.danger{border:1px solid #efceca;color:#a7423a;background:#fff8f7}
+.hint{font-size:.77rem;color:#84978a;display:block;margin-top:6px;line-height:1.7}
+.message{margin:15px 0 0;font-size:.86rem;line-height:1.8;color:#2d7054;min-height:1.5em}
+.message.error{color:#a93e38}
+.hidden{display:none!important}
+.welcome{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:23px}
+.welcome p{color:#71877c;margin:5px 0 0}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:19px}
+.stat{background:#edf8f1;border-radius:12px;padding:11px 18px;min-width:125px}
+.stat strong{font-size:1.4rem;display:block;color:#246c58}
+.stat span{font-size:.76rem;color:#668474}
+.table-wrap{overflow:auto;border:1px solid #e4eee7;border-radius:12px}
+table{border-collapse:collapse;min-width:600px;width:100%;text-align:right}
+th,td{border-bottom:1px solid #eaf0eb;padding:12px;font-size:.85rem}
+th{background:#f4faf6;color:#587466}
+tr:last-child td{border-bottom:0}
+.pill{border-radius:999px;display:inline-block;padding:5px 10px;font-size:.77rem;font-weight:700;white-space:nowrap}
+.pending{background:#fff2d9;color:#8a6114}.confirmed{background:#e4f6e9;color:#276b48}.cancelled{background:#fff0ed;color:#a4473c}
+.empty{padding:25px;text-align:center;color:#789084}
+.note{font-size:.8rem;color:#7c9185;line-height:1.9;margin-top:20px}
+@media(max-width:620px){main{margin:25px auto 50px}.head,.welcome{align-items:flex-start;flex-direction:column}.card{padding:18px}}
+</style>
+</head>
+<body>
+<header><div class="head">
+<a href="index.html" class="brand">
+<svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><rect x="4" y="4" width="14" height="14" rx="3" fill="#397f88"/><rect x="22" y="4" width="14" height="14" rx="3" fill="#aad7d6"/><rect x="4" y="22" width="14" height="14" rx="3" fill="#aad7d6"/><rect x="22" y="22" width="14" height="14" rx="3" fill="#397f88"/></svg>
+<span>پنجره روشنایی<small>حساب کاربری مراجعه‌کنندگان</small></span></a>
+<nav aria-label="پیوندهای اصلی"><a href="index.html">صفحه اصلی</a><a href="booking-shamsi.html">رزرو نوبت</a><a href="tracking.html">پیگیری نوبت</a></nav>
+</div></header>
+<main>
+<section id="authSection" class="auth-card">
+<h1>حساب کاربری شما</h1>
+<p class="intro">ثبت‌نام کنید یا وارد حساب خود شوید تا نوبت‌هایی که هنگام ورود به حساب رزرو می‌کنید، اینجا نمایش داده شوند.</p>
+<div class="card">
+<div class="tabs" role="tablist" aria-label="انتخاب نوع فرم">
+<button id="loginTab" role="tab" aria-selected="true" aria-controls="loginPanel" type="button">ورود</button>
+<button id="registerTab" role="tab" aria-selected="false" aria-controls="registerPanel" type="button">ثبت‌نام</button>
+</div>
+<div id="loginPanel" role="tabpanel">
+<form id="loginForm">
+<div class="field"><label for="loginPhone">شماره موبایل</label><input id="loginPhone" type="tel" autocomplete="tel" inputmode="numeric" maxlength="11" required placeholder="09123456789"></div>
+<div class="field"><label for="loginPassword">رمز عبور</label><input id="loginPassword" type="password" autocomplete="current-password" minlength="12" maxlength="128" required></div>
+<button id="loginSubmit" type="submit" class="primary" style="width:100%">ورود به حساب</button>
+</form>
+</div>
+<div id="registerPanel" role="tabpanel" class="hidden">
+<form id="registerForm">
+<div class="field"><label for="registerName">نام و نام خانوادگی</label><input id="registerName" autocomplete="name" minlength="3" maxlength="100" required placeholder="نام شما"></div>
+<div class="field"><label for="registerPhone">شماره موبایل</label><input id="registerPhone" type="tel" autocomplete="tel" inputmode="numeric" maxlength="11" required placeholder="09123456789"></div>
+<div class="field"><label for="registerPassword">رمز عبور جدید</label><input id="registerPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" required><span class="hint">حداقل ۱۲ کاراکتر؛ از رمز منحصربه‌فرد استفاده کنید.</span></div>
+<div class="field"><label for="confirmPassword">تکرار رمز عبور</label><input id="confirmPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></div>
+<button id="registerSubmit" type="submit" class="primary" style="width:100%">ساخت حساب کاربری</button>
+</form>
+</div>
+<p id="authMessage" class="message" role="status" aria-live="polite"></p>
+</div>
+<p class="note">این نسخه، پروژه نمایشی دانشگاهی است. تأیید مالکیت شماره موبایل و بازیابی رمز هنوز پیاده‌سازی نشده‌اند؛ لطفاً فقط از اطلاعات آزمایشی استفاده کنید.</p>
+</section>
+<section id="dashboard" class="hidden">
+<div class="welcome">
+<div><h1>نوبت‌های من</h1><p id="welcomeName"></p></div>
+<div class="actions"><a class="primary" href="booking-shamsi.html" style="display:inline-flex;align-items:center;padding:10px 16px;border-radius:11px">رزرو نوبت جدید</a><button id="logout" class="outline" type="button">خروج از حساب</button></div>
+</div>
+<div class="card">
+<div id="summary" class="summary"></div>
+<div class="table-wrap"><table><thead><tr><th>تاریخ مراجعه</th><th>ساعت</th><th>کد پیگیری</th><th>وضعیت</th></tr></thead><tbody id="appointments"></tbody></table></div>
+<p id="empty" class="empty hidden">هنوز نوبتی از داخل حساب خود ثبت نکرده‌اید.</p>
+<p id="dashboardMessage" class="message" role="status" aria-live="polite"></p>
+<div class="actions"><button id="refresh" class="outline" type="button">به‌روزرسانی نوبت‌ها</button></div>
+</div>
+<p class="note">فقط نوبت‌هایی که بعد از ورود به حساب رزرو شده‌اند نمایش داده می‌شوند. نوبت‌های مهمان قبلی به‌طور خودکار به حساب متصل نمی‌شوند؛ آن‌ها را با کد پیگیری از <a href="tracking.html">صفحه پیگیری نوبت</a> بررسی کنید.</p>
+</section>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const labels={pending:'در انتظار تأیید',confirmed:'تأییدشده',cancelled:'لغوشده'};
+const latin=value=>String(value).replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-1776)).replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-1632));
+function message(id,text,error=false){$(id).textContent=text||'';$(id).classList.toggle('error',error);}
+function showDashboard(show){
+ $('dashboard').classList.toggle('hidden',!show);
+ $('authSection').classList.toggle('hidden',show);
+ if(!show){$('appointments').replaceChildren();$('summary').replaceChildren();}
+}
+function setTab(name){
+ const login=name==='login';
+ $('loginPanel').classList.toggle('hidden',!login);
+ $('registerPanel').classList.toggle('hidden',login);
+ $('loginTab').setAttribute('aria-selected',String(login));
+ $('registerTab').setAttribute('aria-selected',String(!login));
+ message('authMessage','');
+}
+$('loginTab').addEventListener('click',()=>setTab('login'));
+$('registerTab').addEventListener('click',()=>setTab('register'));
+async function api(path,options={}){
+ const response=await fetch(path,{cache:'no-store',credentials:'same-origin',...options,
+ headers:{...(options.method?{'X-Requested-With':'XMLHttpRequest','Content-Type':'application/json'}:{}),...(options.headers||{})}});
+ let data;try{data=await response.json();}catch{throw new Error('پاسخ سرور معتبر نیست.');}
+ if(!response.ok){
+  if(response.status===401&&!['/api/account/login','/api/account/register','/api/account/session'].includes(path))showDashboard(false);
+  throw new Error(data.message||'درخواست انجام نشد.');
+ }
+ return data;
+}
+function dateFa(iso){
+ try{return new Intl.DateTimeFormat('fa-IR-u-ca-persian',{timeZone:'UTC',year:'numeric',month:'long',day:'numeric'}).format(new Date(iso+'T12:00:00Z'));}
+ catch{return iso;}
+}
+function el(tag,value,cls){
+ const node=document.createElement(tag);
+ if(value!==undefined)node.textContent=String(value);
+ if(cls)node.className=cls;
+ return node;
+}
+async function loadAppointments(){
+ message('dashboardMessage','در حال دریافت نوبت‌ها...');
+ try{
+  const data=await api('/api/account/appointments');
+  const tbody=$('appointments');tbody.replaceChildren();
+  const counts={pending:0,confirmed:0,cancelled:0};
+  for(const item of data.appointments||[]){
+   if(counts[item.status]!==undefined)counts[item.status]++;
+   const tr=el('tr');
+   for(const value of [dateFa(item.date),item.time,item.reference])tr.append(el('td',value));
+   const td=el('td');td.append(el('span',labels[item.status]||item.status,'pill '+item.status));tr.append(td);
+   tbody.append(tr);
+  }
+  const total=(data.appointments||[]).length;
+  $('empty').classList.toggle('hidden',total!==0);
+  const summary=$('summary');summary.replaceChildren();
+  for(const [name,value] of [['کل نوبت‌ها',total],['در انتظار',counts.pending],['تأییدشده',counts.confirmed],['لغوشده',counts.cancelled]]){
+   const card=el('div',undefined,'stat');card.append(el('strong',value),el('span',name));summary.append(card);
+  }
+  message('dashboardMessage','فهرست نوبت‌ها به‌روز شد.');
+ }catch(e){message('dashboardMessage',e.message,true);}
+}
+async function onLogin(user){
+ $('welcomeName').textContent='خوش آمدید، '+user.fullName;
+ showDashboard(true);message('authMessage','');
+ $('loginPassword').value='';$('registerPassword').value='';$('confirmPassword').value='';
+ await loadAppointments();
+}
+$('loginForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const button=$('loginSubmit');button.disabled=true;message('authMessage','در حال ورود...');
+ try{
+  const data=await api('/api/account/login',{method:'POST',body:JSON.stringify({phone:latin($('loginPhone').value),password:$('loginPassword').value})});
+  await onLogin(data.user);
+ }catch(error){message('authMessage',error.message,true);}
+ finally{button.disabled=false;}
+});
+$('registerForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const password=$('registerPassword').value;
+ if(password!==$('confirmPassword').value){message('authMessage','رمز عبور و تکرار آن یکسان نیستند.',true);return;}
+ const button=$('registerSubmit');button.disabled=true;message('authMessage','در حال ساخت حساب...');
+ try{
+  const data=await api('/api/account/register',{method:'POST',body:JSON.stringify({fullName:$('registerName').value.trim(),phone:latin($('registerPhone').value),password})});
+  await onLogin(data.user);
+ }catch(error){message('authMessage',error.message,true);}
+ finally{button.disabled=false;}
+});
+$('logout').addEventListener('click',async()=>{
+ try{await api('/api/account/logout',{method:'POST',body:'{}'});}catch{}
+ showDashboard(false);setTab('login');message('authMessage','از حساب کاربری خارج شدید.');
+});
+$('refresh').addEventListener('click',loadAppointments);
+(async()=>{
+ try{const data=await api('/api/account/session');await onLogin(data.user);}
+ catch{showDashboard(false);}
+})();
+</script>
+</body>
+</html>
