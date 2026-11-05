@@ -23,3 +23,15 @@
 این بسته نسخه Cloudflare است؛ پیکربندی PHP هاست cPanel در آن قرار ندارد.
 
 تصاویر فضای کلینیک نمایشی‌اند و عکس واقعی محل نیستند.
+
+## پنل مدیریت نوبت‌ها (Cloudflare Pages)
+
+- مسیر پنل: `/admin.html`
+- رابط مدیریت: ورود، مشاهده فهرست (تا ۱۰۰ مورد)، فیلتر تاریخ/وضعیت، تأیید و لغو نوبت، خروج.
+- مسیرهای API: `/api/admin/login`، `/api/admin/session`، `/api/admin/logout`، `/api/admin/appointments` و `PATCH /api/admin/appointments/:id`.
+- در **Cloudflare Pages → Settings → Variables and Secrets** برای محیط **Production** یک **Secret** با نام دقیق `ADMIN_PASSWORD` و یک رمز تصادفی قوی با **حداقل ۱۶ نویسه** تعریف کنید. رمز را در GitHub، README یا چت قرار ندهید.
+- اتصال D1 به نام `DB` لازم است. جداول `admin_sessions` و `admin_login_attempts` هنگام اولین تلاش ورود ساخته می‌شوند؛ نسخه SQL آن‌ها در `schema.sql` هم آمده است.
+- پس از تنظیم Secret و آپلود مجدد **تمام فایل‌های نسخه جدید پروژه** (از جمله `_worker.js` و `admin.html`) به Cloudflare Pages، پنل در `https://panjere-roshanayi.pages.dev/admin.html` در دسترس خواهد بود.
+- این مخزن به Cloudflare Pages به‌صورت خودکار متصل نیست؛ هر تغییر GitHub باید جداگانه در Cloudflare منتشر شود.
+- امنیت: نشست‌های ۸ ساعته با کوکی HttpOnly/Secure/SameSite=Strict، نگهداری هش توکن در D1، محدودسازی تلاش ناموفق ورود، بررسی Origin برای تغییرات و درخواست‌های بدون کش. تغییر رمز، نشست‌های موجود را خودکار باطل نمی‌کند؛ برای ابطال همه نشست‌ها، جدول `admin_sessions` را خالی کنید.
+- پنل برای **پروژه آموزشی و داده‌های آزمایشی** است؛ پیش از استفاده واقعی با اطلاعات بیماران، بازبینی امنیت و حریم خصوصی، کنترل دسترسی دقیق‌تر و سیاست نگهداری داده ضروری است.
